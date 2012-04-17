@@ -45,7 +45,9 @@ static int lmd5 (lua_State *L) {
       lua_setmetatable(L, -2);
       md5_init(m);
     }
-    if (md5_update(m, message, len)) {
+    if ((len & (64-1)) == 0)
+      md5_update(m, message, len);
+    else {
       md5_finish(m, buff);
       lua_pushlstring(L, buff, 16L);
     }
@@ -242,7 +244,7 @@ static struct luaL_Reg md5lib[] = {
 };
 
 
-int luaopen_md5 (lua_State *L) {
+LUALIB_API int luaopen_md5 (lua_State *L) {
   luaL_newmetatable(L, MD5_TYPE);
 #if LUA_VERSION_NUM < 502
   luaL_register(L, "md5", md5lib);
