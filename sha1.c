@@ -178,11 +178,6 @@ void sha1_finish(sha1_t *m, char output[SHA1_HASHSIZE]) {
 void sha1(const char *message, size_t len, char output[SHA1_HASHSIZE]) {
   sha1_t m;
   sha1_init(&m);
-  while (len >= SHA1_BLOCKSIZE) {
-    sha1_update(&m, message, SHA1_BLOCKSIZE);
-    message += SHA1_BLOCKSIZE;
-    len -= SHA1_BLOCKSIZE;
-  }
   sha1_update(&m, message, len);
   sha1_finish(&m, output);
 }

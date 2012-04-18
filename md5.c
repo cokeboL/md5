@@ -179,11 +179,6 @@ void md5_finish(md5_t *m, char output[MD5_HASHSIZE]) {
 void md5(const char *message, size_t len, char output[MD5_HASHSIZE]) {
   md5_t m;
   md5_init(&m);
-  while (len >= MD5_BLOCKSIZE) {
-    md5_update(&m, message, MD5_BLOCKSIZE);
-    message += MD5_BLOCKSIZE;
-    len -= MD5_BLOCKSIZE;
-  }
   md5_update(&m, message, len);
   md5_finish(&m, output);
 }
