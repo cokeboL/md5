@@ -113,4 +113,7 @@ LUALIB_API int luaopen_hashlib(lua_State *L) {
   luaL_newlib(L, hlib);
   return 1;
 }
-/* cc: flags+='-shared' output='hashlib.so' input='*.c' */
+/* xcc: flags+='-shared' output='hashlib.so' input='*.c'
+ * cc: lua='lua52' flags+='-mdll -Id:/$lua/include -DLUA_BUILD_AS_DLL'
+ * cc: libs+='d:/$lua/$lua.dll' output='hashlib.dll' input='*.c'
+ */
