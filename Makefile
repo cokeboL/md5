@@ -1,35 +1,85 @@
-# $Id: Makefile,v 1.7 2007/10/11 00:02:56 carregal Exp $
+# This Makefile is based on LuaSec's Makefile. Thanks to the LuaSec developers.
+# Inform the location to intall the modules
+PREFIX = /usr/local
+LUA_V = lua51
+LUA_DIR = lua/5.1
 
-CONFIG= ./config
+LUA_PATH   = $(PREFIX)/share/$(LUA_DIR)
+LUA_CPATH  = $(PREFIX)/lib/$(LUA_DIR)
+LUA_INCDIR = -I$(PREFIX)/include/
+LUA_LIBS   = -L$(PREFIX)/lib -llua
 
-include $(CONFIG)
+MODNAME = hashlib
 
-ifeq "$(LUA_VERSION_NUM)" "500"
-COMPAT_O= $(COMPAT_DIR)/compat-5.1.o
-endif
+# For Mac OS X: set the system version
+MACOSX_VERSION = 10.4
 
-MD5_OBJS= src/md5.o src/md5lib.o $(COMPAT_O)
-MD5_LIBNAME = md5.so
+PLAT = none
+DEFS =
+CMOD = $(MODNAME).so
+OBJS = lhashlib.o sha1.o md5.o
 
-DES56_OBJS= src/des56.o src/ldes56.o
-DES56_LIBNAME= des56.so
+INCLUDES = $(LUA_INCDIR) $(MAPM_INCDIR)
+LIBS = $(LUA_LIBS) $(MAPM_LIBS)
+WARN = -Wall -pedantic
 
-all: src/$(MD5_LIBNAME) src/$(DES56_LIBNAME)
+BSD_CFLAGS  = -O2 -fPIC
+BSD_LDFLAGS = -O -shared -fPIC
 
-src/$(MD5_LIBNAME) : $(MD5_OBJS)
-	export MACOSX_DEPLOYMENT_TARGET="10.3"; $(CC) $(CFLAGS) $(LIB_OPTION) -o src/$(MD5_LIBNAME) $(MD5_OBJS)
+LNX_CFLAGS  = -O2 -fPIC
+LNX_LDFLAGS = -O -shared -fPIC
+LNX_LUA_LIBS =
 
-src/$(DES56_LIBNAME) : $(DES56_OBJS)
-	export MACOSX_DEPLOYMENT_TARGET="10.3"; $(CC) $(CFLAGS) $(LIB_OPTION) -o src/$(DES56_LIBNAME) $(DES56_OBJS)
+MAC_ENV     = env MACOSX_DEPLOYMENT_TARGET='$(MACVER)'
+MAC_CFLAGS  = -O2 -fPIC -fno-common
+MAC_LDFLAGS = -bundle -undefined dynamic_lookup -fPIC
 
-$(COMPAT_DIR)/compat-5.1.o: $(COMPAT_DIR)/compat-5.1.c
-	$(CC) -c $(CFLAGS) -o $@ $(COMPAT_DIR)/compat-5.1.c
+MGW_LUA_INCDIR = -Id:/$(LUA_V)/include
+MGW_LUA_LIBS = d:/$(LUA_V)/$(LUA_V).dll
+MGW_CMOD = $(MODNAME).dll
+MGW_CFLAGS = -O2 -mdll -DLUA_BUILD_AS_DLL
+MGW_LDFLAGS = -mdll
 
-install: src/$(MD5_LIBNAME) src/$(DES56_LIBNAME)
-	mkdir -p $(LUA_LIBDIR)/md5
-	cp src/$(MD5_LIBNAME) $(LUA_LIBDIR)/md5.so
-	mkdir -p $(LUA_DIR)
-	cp src/$(DES56_LIBNAME) $(LUA_LIBDIR)
+CC = gcc
+LD = $(MYENV) gcc
+CFLAGS  = $(MYCFLAGS) $(WARN) $(INCLUDES) $(DEFS)
+LDFLAGS = $(MYLDFLAGS)
+
+.PHONY: test clean install none linux bsd macosx
+
+none:
+	@echo "Usage: $(MAKE) <platform>"
+	@echo "  * linux"
+	@echo "  * bsd"
+	@echo "  * macosx"
+	@echo "  * mingw"
+
+install: $(CMOD)
+	cp $(CMOD) $(LUACPATH)
+
+uninstall:
+	-rm $(LUACPATH)/$(CMOD)
+
+linux:
+	@$(MAKE) $(CMOD) PLAT=linux MYCFLAGS="$(LNX_CFLAGS)" MYLDFLAGS="$(LNX_LDFLAGS)" LUA_LIBS="$(LNX_LUA_LIBS)"
+
+bsd:
+	@$(MAKE) $(CMOD) PLAT=bsd MYCFLAGS="$(BSD_CFLAGS)" MYLDFLAGS="$(BSD_LDFLAGS)"
+
+macosx:
+	@$(MAKE) $(CMOD) PLAT=macosx MYCFLAGS="$(MAC_CFLAGS)" MYLDFLAGS="$(MAC_LDFLAGS)" MYENV="$(MAC_ENV)"
+
+mingw:
+	@$(MAKE) $(MGW_CMOD) PLAT=mingw MYCFLAGS="$(MGW_CFLAGS)" MYLDFLAGS="$(MGW_LDFLAGS)" LUA_INCDIR="$(MGW_LUA_INCDIR)" LUA_LIBS="$(MGW_LUA_LIBS)" CMOD="$(MGW_CMOD)"
+
+test:
+	lua ./test.lua
 
 clean:
-	rm -f $(MD5_OBJS) src/$(MD5_LIBNAME) $(DES56_OBJS) src/$(DES56_LIBNAME)
+	-rm -f $(OBJS) $(CMOD) $(MGW_CMOD)
+
+.c.o:
+	$(CC) $(CFLAGS) $< -c -o $@
+
+$(CMOD): $(OBJS)
+	$(LD) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
