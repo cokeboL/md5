@@ -176,11 +176,6 @@ void md5_finish(md5_t *m, char output[16]) {
 void md5(const char *message, size_t len, char output[16]) {
   md5_t m;
   md5_init(&m);
-  while (len >= 64) {
-    md5_update(&m, message, 64);
-    message += 64;
-    len -= 64;
-  }
   md5_update(&m, message, len);
   md5_finish(&m, output);
 }
