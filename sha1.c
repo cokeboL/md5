@@ -144,7 +144,7 @@ void sha1_update(sha1_t *m, const char *message, size_t len) {
     digest(wbuff, m->d);
     m->len += SHA1_BLOCKSIZE;
     message += numbytes;
-    m->bufflen = 0;
+    len -= numbytes;
   }
   while (len >= SHA1_BLOCKSIZE) {
     bytestoword32(wbuff, message);

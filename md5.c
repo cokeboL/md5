@@ -145,7 +145,7 @@ void md5_update(md5_t *m, const char *message, size_t len) {
     digest(wbuff, m->d);
     m->len += MD5_BLOCKSIZE;
     message += numbytes;
-    m->bufflen = 0;
+    len -= numbytes;
   }
   while (len >= MD5_BLOCKSIZE) {
     bytestoword32(wbuff, message);
