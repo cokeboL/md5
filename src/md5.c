@@ -142,7 +142,7 @@ void md5_update(md5_t *m, const char *message, size_t len) {
     digest(wbuff, m->d);
     m->len += 64;
     message += numbytes;
-    m->bufflen = 0;
+    len -= numbytes;
   }
   while (len >= 64) {
     bytestoword32(wbuff, message);
