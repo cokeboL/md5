@@ -1,13 +1,16 @@
+#include "md5.h"
+#include "sha1.h"
+
 #define LUA_LIB
 #include <lua.h>
 #include <lauxlib.h>
 
+#include <string.h>
 
-#include "md5.h"
-#include "sha1.h"
-
-#define MD5_TYPE "md5 context"
-#define SHA1_TYPE "sha1 context"
+#define DEFINE_BIND_META
+#ifndef DEFINE_BIND_META
+#  define DEFINE_BIND_CLOSURE
+#endif
 
 static int tohex(lua_State *L, const char *s, size_t len) {
   static const char *hexvalue = "0123456789abcdef";
@@ -24,26 +27,17 @@ static int tohex(lua_State *L, const char *s, size_t len) {
 
 #define hash md5
 #define HASH MD5
-#define DEFINE_BIND
 #include "hash_impl.h"
 
 #define hash sha1
 #define HASH SHA1
-#define DEFINE_BIND
 #include "hash_impl.h"
-
-static int Lmd5(lua_State *L) { return md5_func(L, 0); }
-static int Lmd5hexa(lua_State *L) { return md5_func(L, 1); }
-static int Lsha1(lua_State *L) { return sha1_func(L, 0); }
-static int Lsha1hexa(lua_State *L) { return sha1_func(L, 1); }
-
 
 static int Ltohex(lua_State *L) {
   size_t len;
   const char *s = luaL_checklstring(L, 1, &len);
   return tohex(L, s, len);
 }
-
 
 static int Lexor (lua_State *L) {
   size_t l1, l2;
@@ -57,23 +51,28 @@ static int Lexor (lua_State *L) {
   return 1;
 }
 
-
 static luaL_Reg hlib[] = {
-  { "md5",      Lmd5      },
-  { "sha1",     Lsha1     },
-  { "md5hexa",  Lmd5hexa  },
-  { "sha1hexa", Lsha1hexa },
-  { "tohex",    Ltohex    },
-  { "exor",     Lexor     },
+#ifdef DEFINE_BIND_CLOSURE
+  { "md5",      Lmd5_sum      },
+  { "sha1",     Lsha1_sum     },
+  { "md5hexa",  Lmd5_sumhexa  },
+  { "sha1hexa", Lsha1_sumhexa },
+#endif
+  { "tohex", Ltohex },
+  { "exor",  Lexor  },
   { NULL, NULL }
 };
 
-
 LUALIB_API int luaopen_hashlib(lua_State *L) {
   luaL_newlib(L, hlib);
+#ifdef DEFINE_BIND_META
+  md5_setup_meta(L, "md5");
+  sha1_setup_meta(L, "sha1");
+#endif
   return 1;
 }
-/* xcc: lua='lua52' flags+='-mdll -Id:/$lua/include -DLUA_BUILD_AS_DLL'
- * xcc: libs+='d:/$lua/$lua.dll' output='hashlib.dll' input='*.c'
- * cc: flags+='-shared' output='hashlib.so' input='*.c'
+/*
+ * xcc: flags+='-shared' output='hashlib.so' input='*.c'
+ * cc: lua='lua52' flags+='-mdll -Id:/$lua/include -DLUA_BUILD_AS_DLL'
+ * cc: libs+='d:/$lua/$lua.dll' output='hashlib.dll' input='*.c'
  */
