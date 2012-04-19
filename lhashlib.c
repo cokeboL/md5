@@ -13,7 +13,7 @@
 #endif
 
 static int tohex(lua_State *L, const char *s, size_t len) {
-  static const char *hexvalue = "0123456789abcdef";
+  const char *hexvalue = "0123456789abcdef";
   size_t i;
   luaL_Buffer b;
   luaL_buffinit(L, &b);

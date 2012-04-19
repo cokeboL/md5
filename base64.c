@@ -3,9 +3,9 @@
 #include <string.h>
 
 static int b64_encode_block(const char *src, char *dst) {
-  static const char *table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                             "abcdefghijklmnopqrstuvwxyz"
-                             "0123456789+/";
+  const char *table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                      "abcdefghijklmnopqrstuvwxyz"
+                      "0123456789+/";
   *dst++ = table[(src[0]>>2          )&0x3F];
   *dst++ = table[(src[0]<<4|src[1]>>4)&0x3F];
   *dst++ = table[(src[1]<<2|src[2]>>6)&0x3F];
