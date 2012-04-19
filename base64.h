@@ -11,9 +11,9 @@
 typedef struct base64_t {
     char buff[4];
     size_t bufflen;
-    int is_decode;
+    int is_decode, mask;
 } base64_t;
-typedef int (*b64_Writer)(void *ud, int ch);
+typedef int (*b64_Writer)(void *ud, const char *ch, size_t len);
 
 
 void b64_init   (base64_t *m, int is_decode);
