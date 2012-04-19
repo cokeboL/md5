@@ -22,55 +22,15 @@ static int tohex(lua_State *L, const char *s, size_t len) {
   return 1;
 }
 
-#define DEFINE_HASH_UPDATE(hash, HASH) \
-  static int hash##_update_helper(lua_State *L) {             \
-    hash##_t *m =                                             \
-    (hash##_t*)lua_touserdata(L, lua_upvalueindex(2));        \
-    if (lua_isnoneornil(L, 1)) {                              \
-      char buff[HASH##_HASHSIZE];                             \
-      hash##_finish(m, buff);                                 \
-      hash##_init(m);                                         \
-      if (lua_toboolean(L, lua_upvalueindex(3)))              \
-      return tohex(L, buff, HASH##_HASHSIZE);                 \
-      lua_pushlstring(L, buff, HASH##_HASHSIZE);              \
-    }                                                         \
-    else {                                                    \
-      size_t len;                                             \
-      const char *message = luaL_checklstring(L, 1, &len);    \
-      hash##_update(m, message, len);                         \
-      lua_pushvalue(L, lua_upvalueindex(1));                  \
-    }                                                         \
-    return 1;                                                 \
-  }
+#define hash md5
+#define HASH MD5
+#define DEFINE_BIND
+#include "hash_impl.h"
 
-#define DEFINE_HASH_FUNC(hash, HASH) \
-  static int hash##_func(lua_State *L, int needhexa) {        \
-    if (lua_isnoneornil(L, 1)) {                              \
-      hash##_t *m;                                            \
-      lua_pushnil(L);                                         \
-      m = (hash##_t*)lua_newuserdata(L, sizeof(hash##_t));    \
-      lua_pushboolean(L, needhexa);                           \
-      lua_pushcclosure(L, hash##_update_helper, 3);           \
-      lua_pushvalue(L, -1);                                   \
-      lua_setupvalue(L, -2, 1);                               \
-      hash##_init(m);                                         \
-    }                                                         \
-    else {                                                    \
-      size_t len;                                             \
-      const char *message = luaL_checklstring(L, 1, &len);    \
-      char buff[HASH##_HASHSIZE];                             \
-      hash(message, len, buff);                               \
-      if (needhexa)                                           \
-      return tohex(L, buff, HASH##_HASHSIZE);                 \
-      lua_pushlstring(L, buff, HASH##_HASHSIZE);              \
-    }                                                         \
-    return 1;                                                 \
-  }
-
-DEFINE_HASH_UPDATE(md5, MD5)
-DEFINE_HASH_FUNC(md5, MD5)
-DEFINE_HASH_UPDATE(sha1, SHA1)
-DEFINE_HASH_FUNC(sha1, SHA1)
+#define hash sha1
+#define HASH SHA1
+#define DEFINE_BIND
+#include "hash_impl.h"
 
 static int Lmd5(lua_State *L) { return md5_func(L, 0); }
 static int Lmd5hexa(lua_State *L) { return md5_func(L, 1); }
@@ -113,7 +73,7 @@ LUALIB_API int luaopen_hashlib(lua_State *L) {
   luaL_newlib(L, hlib);
   return 1;
 }
-/* xcc: flags+='-shared' output='hashlib.so' input='*.c'
- * cc: lua='lua52' flags+='-mdll -Id:/$lua/include -DLUA_BUILD_AS_DLL'
- * cc: libs+='d:/$lua/$lua.dll' output='hashlib.dll' input='*.c'
+/* xcc: lua='lua52' flags+='-mdll -Id:/$lua/include -DLUA_BUILD_AS_DLL'
+ * xcc: libs+='d:/$lua/$lua.dll' output='hashlib.dll' input='*.c'
+ * cc: flags+='-shared' output='hashlib.so' input='*.c'
  */

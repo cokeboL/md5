@@ -128,4 +128,5 @@ static void bytestoword32 (WORD32 output[MLEN], const char input[SHA1_BLOCKSIZE]
 
 #define hash sha1
 #define HASH SHA1
-#include "hash_api.h"
+#define DEFINE_IMPL
+#include "hash_impl.h"

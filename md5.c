@@ -129,4 +129,5 @@ static void bytestoword32 (WORD32 output[MLEN], const char input[MD5_BLOCKSIZE])
 
 #define hash md5
 #define HASH MD5
-#include "hash_api.h"
+#define DEFINE_IMPL
+#include "hash_impl.h"
