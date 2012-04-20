@@ -1,3 +1,7 @@
+#if !defined(hash) || !defined(HASH)
+#  error "you should define the hash algorithm name you used"
+#endif
+
 #define HASH_PREFIX_NAME(N)      HASH_PREFIX_NAME_(HASH, N)
 #define HASH_PREFIX_NAME_(X, N)  HASH_PREFIX_NAME_R(X, N)
 #define HASH_PREFIX_NAME_R(X, N) X##_##N
@@ -26,8 +30,7 @@ void hash_init(hash_t *m) {
   m->len = m->bufflen = 0;
 }
 
-void hash_update(hash_t *m,
-    const char *message, size_t len) {
+void hash_update(hash_t *m, const char *message, size_t len) {
   WORD32 wbuff[MLEN];
   if (m->bufflen != 0) {
     int numbytes = m->bufflen+len < HASH_BLOCKSIZE ? len :
@@ -68,8 +71,7 @@ void hash_finish(hash_t *m, char output[HASH_HASHSIZE]) {
   word32tobytes(m->d, output);
 }
 
-void hash(const char *message, size_t len,
-    char output[HASH_HASHSIZE]) {
+void hash(const char *message, size_t len, char output[HASH_HASHSIZE]) {
   hash_t m;
   hash_init(&m);
   hash_update(&m, message, len);
@@ -131,7 +133,7 @@ static int Lhash_sum(lua_State *L) { return Lhash_impl(L, 0); }
 static int Lhash_sumhexa(lua_State *L) { return Lhash_impl(L, 1); }
 
 #undef Lhash_update_helper
-#undef Lhash_func
+#undef Lhash_impl
 #undef Lhash_sum
 #undef Lhash_sumhexa
 
@@ -240,6 +242,8 @@ static void hash_setup_meta(lua_State *L, const char *name) {
 #undef HASH_TYPE_R
 
 #undef hash_setup_meta
+#undef hash_libs
+
 #undef Lhash_tostring
 #undef Lhash_new
 #undef Lhash_digest

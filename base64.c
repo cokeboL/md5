@@ -66,12 +66,12 @@ static int b64_decode_block(const char *src, char *dst) {
 }
 
 
-void b64_init(base64_t *m, int is_decode) {
+void b64_init(b64_t *m, int is_decode) {
   m->bufflen = m->mask = 0;
   m->is_decode = is_decode;
 }
 
-int b64_update(base64_t *m, const char *s, size_t len, b64_Writer w, void *ud) {
+int b64_update(b64_t *m, const char *s, size_t len, b64_Writer w, void *ud) {
   size_t insize;
   int (*worker)(const char*, char*);
   char buff[4];
@@ -106,7 +106,7 @@ int b64_update(base64_t *m, const char *s, size_t len, b64_Writer w, void *ud) {
   return 1;
 }
 
-int b64_finish(base64_t *m, b64_Writer w, void *ud) {
+int b64_finish(b64_t *m, b64_Writer w, void *ud) {
   char buff[4];
   if (m->is_decode) {
     int mask = b64_decode_block(m->buff, buff);
@@ -146,8 +146,8 @@ int b64_finish(base64_t *m, b64_Writer w, void *ud) {
   return 1;
 }
 
-int base64(int is_decode, const char *s, size_t len, b64_Writer w, void *ud) {
-  base64_t m;
+int b64(int is_decode, const char *s, size_t len, b64_Writer w, void *ud) {
+  b64_t m;
   b64_init(&m, is_decode);
   return b64_update(&m, s, len, w, ud)
       && b64_finish(&m, w, ud);
