@@ -55,25 +55,19 @@ static int decode_one(char ch, int mask, int *mm) {
 
 #ifdef B64_FAST_DECODE
 static int fast_decode_one(char ch, int mask, int *mm) {
-    static int initialized = 0;
     static unsigned char table[256] = {0};
-    if (!initialized) {
+    if (table[0] == 0) {
         int i;
-        for (i = 0; i < 256; ++i) {
-                 if (i >= 'A' && i <= 'Z') table[i] = i - 'A';
-            else if (i >= 'a' && i <= 'z') table[i] = i - 'a' + 26;
-            else if (i >= '0' && i <= '9') table[i] = i - '0' + 52;
-            else switch (i) {
-                case '+': table[i] = 62; continue;
-                case '/': table[i] = 63; continue;
-            }
-            table[i] = -1;
-        }
-        initialized = 1;
+        memset(table, 0xFF, sizeof table);
+        for (i = 'A'; i <= 'Z'; ++i) table[i] = i - 'A';
+        for (i = 'a'; i <= 'z'; ++i) table[i] = i - 'a' + 26;
+        for (i = '0'; i <= '9'; ++i) table[i] = i - '0' + 52;
+        table['+'] = 62;
+        table['/'] = 63;
     }
     else {
         int digit = table[ch];
-        if (digit == -1) {
+        if (digit == 0xFF) {
             *mm |= mask;
             return 0;
         }
